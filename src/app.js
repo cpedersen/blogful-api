@@ -8,10 +8,10 @@ const ArticlesService = require('./articles-service')
 
 const app = express()
 
-//const morganOption = (process.env.NODE_ENV === 'production')
+app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
-  : 'common';
+  : 'common'; 
 
 app.use(morgan(morganOption))
 app.use(helmet())
@@ -25,7 +25,6 @@ app.get('/', (req, res) => {
 })
 
 app.get('/articles', (req, res, next) => {
-  //res.send('All articles')
   const knexInstance = req.app.get('db')
   ArticlesService.getAllArticles(knexInstance)
     .then(articles => {
@@ -35,13 +34,17 @@ app.get('/articles', (req, res, next) => {
 })
 
 app.get('/articles/:article_id', (req, res, next) => {
-  //res.json({ 'requested_id': req.params.article_id, this: 'should fail' })
   const knexInstance = req.app.get('db')
   ArticlesService.getById(knexInstance, req.params.article_id)
     .then(article => {
+      if (!article) {
+        return res.status(404).json({
+          error: { message: `Article doesn't exist` }
+        })
+      }
       res.json(article)
     })
-  .catch(next)
+    .catch(next)
 })
 
 /* -------------------------------------------------------- */
