@@ -7,6 +7,7 @@ const { NODE_ENV } = require('./config')
 const ArticlesService = require('./articles-service')
 
 const app = express()
+const jsonParser = express.json()
 
 app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
 const morganOption = (NODE_ENV === 'production')
@@ -47,12 +48,31 @@ app.get('/articles/:article_id', (req, res, next) => {
     .catch(next)
 })
 
+
+/* -------------------------------------------------------- */
+/*                         POST /                           */
+/* -------------------------------------------------------- */
+app.post('/articles', jsonParser, (req, res, next) => {
+  const { title, content, style } = req.body
+  const newArticle = { title, content, style }
+  ArticlesService.insertArticle(
+    req.app.get('db'),
+    newArticle
+  )
+    .then(article => {
+      res
+        .status(201)
+        .location(`/articles/${article.id}`)
+        .json(article)
+    })
+    .catch(next)
+})
+
 /* -------------------------------------------------------- */
 /*                 Error Handler                            */
 /* -------------------------------------------------------- */
 app.use(function errorHandler(error, req, res, next) {
     let response
-    //if (process.env.NODE_ENV === 'production') {
     if (NODE_ENV === 'production') {
       response = { error: { message: 'server error' } }
     } else {
