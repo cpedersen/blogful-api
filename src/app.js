@@ -13,8 +13,8 @@ const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common'; 
 
-//Solution:
-/*app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
+/* Solution shows this:
+app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
     skip: () => NODE_ENV === 'test'
 }))*/
 
