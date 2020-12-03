@@ -1,6 +1,6 @@
 const knex = require('knex')
 const app = require('../src/app')
-const { makeArticlesArray } = require('./articles.fixtures')
+const { makeArticlesArray, makeMaliciousArticle } = require('./articles.fixtures')
 
 describe('Articles Endpoints', function() {
   let db
@@ -46,6 +46,25 @@ describe('Articles Endpoints', function() {
           .expect(200, testArticles)
       })
     })
+    context(`Given an XSS attack article`, () => {
+      const { maliciousArticle, expectedArticle } = makeMaliciousArticle()
+
+      beforeEach('insert malicious article', () => {
+        return db
+          .into('blogful_articles')
+          .insert([ maliciousArticle ])
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/articles`)
+          .expect(200)
+          .expect(res => {
+            expect(res.body[0].title).to.eql(expectedArticle.title)
+            expect(res.body[0].content).to.eql(expectedArticle.content)
+          })
+      })
+    })
   })
 
   /* -------------------------------------------------------- */
@@ -76,33 +95,8 @@ describe('Articles Endpoints', function() {
           .get(`/articles/${articleId}`)
           .expect(200, expectedArticle)
       })
-
-      context(`Given an XSS attack article`, () => {
-        const maliciousArticle = {
-          id: 911,
-          title: 'Naughty naughty very naughty <script>alert("xss");</script>',
-          style: 'How-to',
-          content: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
-        }
-        
-        beforeEach('insert malicious article', () => {
-          return db
-            .into('blogful_articles')
-            .insert([ maliciousArticle ])
-          })
-        
-        it('removes XSS attack content', () => {
-          return supertest(app)
-            .get(`/articles/${maliciousArticle.id}`)
-            .expect(200)
-            .expect(res => {
-              expect(res.body.title).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;')
-              expect(res.body.content).to.eql(`Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`)
-            })
-          })
-        })
-      })
     })
+  })
 
   /* -------------------------------------------------------- */
   /*                  POST /articles                          */
@@ -115,26 +109,27 @@ describe('Articles Endpoints', function() {
           style: 'Listicle',
           content: 'Test new article content...'
         }
-          return supertest(app)
-              .post('/articles')
-              .send(newArticle)
-              .expect(201)
-              .expect(res => {
-                expect(res.body.title).to.eql(newArticle.title)
-                expect(res.body.style).to.eql(newArticle.style)
-                expect(res.body.content).to.eql(newArticle.content)
-                expect(res.body).to.have.property('id')
-                expect(res.headers.location).to.eql(`/articles/${res.body.id}`)
-                const expected = new Date().toLocaleString('en', { timeZone: 'UTC' })
-                const actual = new Date(res.body.date_published).toLocaleString('en', { timeZone: 'UTC' })
-                expect(actual).to.eql(expected)
-              })
-              .then(postRes =>
-                supertest(app)
-                  .get(`/articles/${postRes.body.id}`)
-                  .expect(postRes.body)
-              )
-          })
+        return supertest(app)
+            .post('/articles')
+            .send(newArticle)
+            .expect(201)
+            .expect(res => {
+              expect(res.body.title).to.eql(newArticle.title)
+              expect(res.body.style).to.eql(newArticle.style)
+              expect(res.body.content).to.eql(newArticle.content)
+              expect(res.body).to.have.property('id')
+              expect(res.headers.location).to.eql(`/articles/${res.body.id}`)
+              const expected = new Date().toLocaleString('en', { timeZone: 'UTC' })
+              const actual = new Date(res.body.date_published).toLocaleString('en', { timeZone: 'UTC' })
+              expect(actual).to.eql(expected)
+            })
+            .then(postRes =>
+              supertest(app)
+                .get(`/articles/${postRes.body.id}`)
+                .expect(postRes.body)
+            )
+        })
+    
     
     const requiredFields = ['title', 'style', 'content']
     
@@ -155,30 +150,5 @@ describe('Articles Endpoints', function() {
         })
       })
     })
-
-    context(`Given an XSS attack article`, () => {
-      const maliciousArticle = {
-        id: 911,
-        title: 'Naughty naughty very naughty <script>alert("xss");</script>',
-        style: 'How-to',
-        content: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
-      }
-      
-      beforeEach('insert malicious article', () => {
-        return db
-          .into('blogful_articles')
-          .insert([ maliciousArticle ])
-        })
-      
-      it('removes XSS attack content', () => {
-        return supertest(app)
-          .post(`/articles`)
-          .expect(200)
-          .expect(res => {
-            expect(res.body.title).to.eql('Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;')
-            expect(res.body.content).to.eql(`Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`)
-          })
-        })
-      })
   })
 })
