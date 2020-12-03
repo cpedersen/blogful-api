@@ -8,16 +8,10 @@ const articlesRouter = require('./articles/articles-router')
 
 const app = express()
 
-app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
+
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common'; 
-
-/* Solution shows this:
-app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
-    skip: () => NODE_ENV === 'test'
-}))*/
-
 app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
@@ -42,5 +36,20 @@ app.use(function errorHandler(error, req, res, next) {
     res.status(500).json(response)
 })
   
+
+/* -------------------------------------------------------- */
+/*                     XSS                                  */
+/* -------------------------------------------------------- */
+//TODO - remove this code once done testing
+app.get('/xss', (req, res) => {
+  res.cookie('secretToken', '1234567890');
+  res.sendFile(__dirname + '/xss-example.html');
+});
+
+/* -------------------------------------------------------- */
+/*                    Public                                */
+/* -------------------------------------------------------- */
+app.use(express.static('public'))
+
 
 module.exports = app
