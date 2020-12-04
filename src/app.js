@@ -40,11 +40,10 @@ app.use(function errorHandler(error, req, res, next) {
 /* -------------------------------------------------------- */
 /*                     XSS                                  */
 /* -------------------------------------------------------- */
-//TODO - remove this code once done testing
-app.get('/xss', (req, res) => {
+/*app.get('/xss', (req, res) => {
   res.cookie('secretToken', '1234567890');
   res.sendFile(__dirname + '/xss-example.html');
-});
+}); */
 
 /* -------------------------------------------------------- */
 /*                    Public                                */

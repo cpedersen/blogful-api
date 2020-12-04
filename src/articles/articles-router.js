@@ -14,6 +14,9 @@ const serializeArticle = article => ({
   date_published: article.date_published,
 })
 
+/* -------------------------------------------------------- */
+/*               route ('/') - get, post                    */
+/* -------------------------------------------------------- */
 articlesRouter
   .route('/')
   .get((req, res, next) => {
@@ -47,6 +50,9 @@ articlesRouter
       .catch(next)
   })
 
+/* -------------------------------------------------------- */
+/*     route ('/:article_id') - all, get, delete, patch   */
+/* -------------------------------------------------------- */
 articlesRouter
   .route('/:article_id')
   .all((req, res, next) => {
