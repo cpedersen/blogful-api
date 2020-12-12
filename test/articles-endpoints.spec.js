@@ -193,7 +193,7 @@ describe('Articles Endpoints', function() {
   /* -------------------------------------------------------- */
   /*           PATCH /api/articles:article_id                 */
   /* -------------------------------------------------------- */
-  describe.only(`PATCH /api/articles/:article_id`, () => {
+  describe(`PATCH /api/articles/:article_id`, () => {
     context(`Given no articles`, () => {
       it(`responds with 404`, () => {
         const articleId = 123456
@@ -224,6 +224,7 @@ describe('Articles Endpoints', function() {
           ...testArticles[idToUpdate - 1],
           ...updateArticle
         }
+        //console.log("expectedArticle: ", expectedArticle, testArticles[idToUpdate - 1])
         return supertest(app)
           .patch(`/api/articles/${idToUpdate}`)
           .send(updateArticle)
@@ -235,7 +236,6 @@ describe('Articles Endpoints', function() {
           )
       })
 
-      //YOUAREHERE - fix this test
       it(`responds with 400 when no required fields supplied`, () => {
         const idToUpdate = 2
         return supertest(app)
