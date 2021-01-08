@@ -8,8 +8,14 @@ const articlesRouter = require('./articles/articles-router')
 const usersRouter = require('./users/users-router')
 const commentsRouter = require('./comments/comments-router')
 
+/* -------------------------------------------------------- */
+/*                 Express setup                            */
+/* -------------------------------------------------------- */
 const app = express()
 
+/* -------------------------------------------------------- */
+/*              Morgan & other setup                        */
+/* -------------------------------------------------------- */
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common'; 
@@ -17,12 +23,16 @@ app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
 
+/* -------------------------------------------------------- */
+/*                   Endpoints                              */
+/* -------------------------------------------------------- */
 app.use('/api/articles', articlesRouter)
-
 app.use('/api/users', usersRouter)
-
 app.use('/api/comments', commentsRouter)
 
+/* -------------------------------------------------------- */
+/*                         GET /                            */
+/* -------------------------------------------------------- */
 app.get('/', (req, res) => {
   res.send('Hello, world!')
 })
@@ -41,7 +51,6 @@ app.use(function errorHandler(error, req, res, next) {
     res.status(500).json(response)
 })
   
-
 /* -------------------------------------------------------- */
 /*                     XSS                                  */
 /* -------------------------------------------------------- */
